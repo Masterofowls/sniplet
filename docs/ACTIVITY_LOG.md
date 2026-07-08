@@ -10,3 +10,4 @@
 - Built unsigned APK: `src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk`
 - Added `scripts/android-build.ps1` for rustup+NDK PATH fix on Windows
 - Fixed GitHub auth HTTP error on Android: moved OAuth/sync to `@tauri-apps/plugin-http` with native TLS roots; added `VITE_GITHUB_CLIENT_ID` to `.env`
+- Added GitHub Actions CI (`ci.yml`) and Release (`release.yml`) workflows, `docs/RELEASE.md`, `CHANGELOG.md`, and cross-platform build scripts

@@ -31,4 +31,8 @@ infra/android/keystore.credentials.local.txt
 *.njsproj
 *.sln
 *.sw?
+src-tauri/target/
+src-tauri/gen/android/**/build/
+src-tauri/gen/android/.gradle/
+/.vscode
 /.cursor

@@ -79,24 +79,26 @@ src-tauri/gen/android/app/build/outputs/apk/aarch64/release/app-aarch64-release.
 | JVM heap | 4096m | `src-tauri/gen/android/gradle.properties` |
 | AndroidX | enabled | `gradle.properties` |
 | Target arch (CI/local) | `aarch64` | `package.json` android:build script |
-| GitHub client ID | env at compile time | `GITHUB_CLIENT_ID` |
+| GitHub client ID | build-time env | `VITE_GITHUB_CLIENT_ID` in `.env` / Actions secret |
 
-### Signed release APK
+### Signed release APK (local)
 
-```bash
-keytool -genkey -v -keystore sniplet-release.keystore -alias sniplet -keyalg RSA -keysize 2048 -validity 10000
+See **[docs/RELEASE.md](docs/RELEASE.md)** for keystore generation, CI secrets, and the full release checklist.
+
+Quick local build:
+
+```powershell
+npm run android:build:universal   # Windows
+npm run android:build:ci          # Linux/macOS / CI-compatible
 ```
 
-Create `src-tauri/gen/android/keystore.properties`:
+Keystore path in `src-tauri/gen/android/keystore.properties`:
 
 ```properties
-storePassword=YOUR_PASSWORD
-password=YOUR_PASSWORD
-keyAlias=sniplet
-storeFile=../../../sniplet-release.keystore
+storeFile=../../../../infra/android/sniplet-release.keystore
 ```
 
-Then configure signing in `src-tauri/gen/android/app/build.gradle.kts` per [Tauri Android signing docs](https://v2.tauri.app/distribute/sign/android/).
+Signing is configured in `src-tauri/gen/android/app/build.gradle.kts` (optional when keystore is absent).
 
 ## Testing
 
@@ -104,7 +106,70 @@ Then configure signing in `src-tauri/gen/android/app/build.gradle.kts` per [Taur
 npm run test
 npm run lint
 npm run typecheck
+npm run verify   # all of the above + production web build
 ```
+
+## CI/CD
+
+GitHub Actions run on every push/PR to `main`:
+
+| Workflow | File | Purpose |
+|----------|------|---------|
+| **CI** | `.github/workflows/ci.yml` | Lint, typecheck, tests, Vite build, `cargo check` |
+| **Release** | `.github/workflows/release.yml` | Signed universal APK + GitHub Release on tag `v*.*.*` |
+
+Badge (replace `YOUR_USERNAME/sniplet`):
+
+```markdown
+![CI](https://github.com/YOUR_USERNAME/sniplet/actions/workflows/ci.yml/badge.svg)
+![Release](https://github.com/YOUR_USERNAME/sniplet/actions/workflows/release.yml/badge.svg)
+```
+
+## Releases
+
+Full release documentation: **[docs/RELEASE.md](docs/RELEASE.md)**
+
+### Quick release
+
+1. Update [CHANGELOG.md](CHANGELOG.md) and version in `src-tauri/tauri.conf.json`
+2. Configure GitHub Actions secrets (see below)
+3. Tag and push:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+4. Download the signed APK from the GitHub Release page
+
+### Required GitHub Actions secrets
+
+| Secret | Purpose |
+|--------|---------|
+| `VITE_GITHUB_CLIENT_ID` | GitHub OAuth Client ID for in-app sync |
+| `ANDROID_KEYSTORE_BASE64` | Base64 release keystore |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Key alias (default: `sniplet`) |
+
+### Local signed build
+
+```powershell
+# Windows
+npm run android:build:universal
+```
+
+```bash
+# Linux/macOS (CI-compatible)
+npm run android:build:ci
+```
+
+Signed APK output:
+
+```
+src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+```
+
+See [docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md) and [infra/android/SIGNING.md](infra/android/SIGNING.md) for signing details.
 
 ## License
 

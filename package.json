@@ -19,7 +19,9 @@
     "android:dev": "tauri android dev",
     "android:build": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target aarch64",
     "android:build:universal": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target universal",
-    "android:build:split": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target split"
+    "android:build:split": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target split",
+    "android:build:ci": "bash scripts/android-build.sh universal",
+    "android:prepare": "bash scripts/ci-prepare-android.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
