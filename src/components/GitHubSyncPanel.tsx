@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import { api } from "../lib/api";
+import * as github from "../lib/githubSync";
 import type { AuthStatus } from "../lib/types";
 import { useSnippetStore } from "../store/snippetStore";
 
@@ -49,21 +49,24 @@ export function GitHubSyncPanel({ open, onClose }: GitHubSyncPanelProps) {
     setLoading(true);
     setError(null);
     try {
-      const flow = await api.githubStartFlow();
+      const flow = await github.startDeviceFlow();
       setUserCode(flow.user_code);
       setVerificationUri(flow.verification_uri);
       setPolling(true);
 
       const poll = async () => {
         try {
-          const status = await api.githubPollFlow();
+          const status = await github.pollDeviceFlow();
           setPolling(false);
           useSnippetStore.setState({ auth: status });
           setUserCode(null);
         } catch (err) {
           const message = String(err);
-          if (message.includes("authorization_pending")) {
-            setTimeout(poll, flow.interval * 1000);
+          if (message.includes("authorization_pending") || message.includes("slow_down")) {
+            const delay = message.includes("slow_down")
+              ? flow.interval * 2000
+              : flow.interval * 1000;
+            setTimeout(poll, delay);
             return;
           }
           setPolling(false);

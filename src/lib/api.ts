@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { AuthStatus, DeviceFlowStart, Snippet, SnippetStore } from "./types";
+import type { Snippet, SnippetStore } from "./types";
 
 export const api = {
   listSnippets: () => invoke<SnippetStore>("list_snippets"),
@@ -12,10 +12,6 @@ export const api = {
   quickCopy: (content: string) => invoke<void>("quick_copy", { content }),
   readClipboard: () => invoke<string>("read_clipboard"),
   duplicateSnippet: (id: string) => invoke<Snippet>("duplicate_snippet", { id }),
-  githubStartFlow: () => invoke<DeviceFlowStart>("github_start_flow"),
-  githubPollFlow: () => invoke<AuthStatus>("github_poll_flow"),
-  githubAuthStatus: () => invoke<AuthStatus>("github_auth_status"),
-  githubLogout: () => invoke<void>("github_logout"),
-  githubPush: () => invoke<AuthStatus>("github_push"),
-  githubPull: () => invoke<SnippetStore>("github_pull"),
+  mergeRemoteStore: (remote: SnippetStore) =>
+    invoke<SnippetStore>("merge_remote_store", { remote }),
 };

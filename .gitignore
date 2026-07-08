@@ -31,3 +31,4 @@ infra/android/keystore.credentials.local.txt
 *.njsproj
 *.sln
 *.sw?
+/.cursor

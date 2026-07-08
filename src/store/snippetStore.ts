@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { api } from "../lib/api";
+import * as github from "../lib/githubSync";
 import type { AuthStatus, Snippet, SnippetStore } from "../lib/types";
 
 interface SnippetState {
@@ -97,22 +98,22 @@ export const useSnippetStore = create<SnippetState>((set, get) => ({
   },
 
   refreshAuth: async () => {
-    const auth = await api.githubAuthStatus();
+    const auth = await github.getAuthStatus();
     set({ auth });
   },
 
   logout: async () => {
-    await api.githubLogout();
+    await github.logout();
     set({ auth: { authenticated: false } });
   },
 
   pushSync: async () => {
-    const auth = await api.githubPush();
+    const auth = await github.pushSync();
     set({ auth });
   },
 
   pullSync: async () => {
-    const store = await api.githubPull();
+    const store = await github.pullSync();
     applyStore(store, set);
     await get().refreshAuth();
   },
