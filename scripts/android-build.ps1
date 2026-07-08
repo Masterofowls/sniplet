@@ -11,6 +11,22 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
+$envFile = Join-Path $root ".env"
+if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match '^\s*([^#][^=]+)=(.*)$') {
+            $name = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            Set-Item -Path "env:$name" -Value $value
+        }
+    }
+    Write-Host "Loaded environment from .env"
+}
+
+if (-not $env:GITHUB_CLIENT_ID) {
+    Write-Warning "GITHUB_CLIENT_ID is not set. GitHub sync will fail until you add it to .env"
+}
+
 $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
 if (-not (Test-Path $cargoBin)) {
     throw "rustup cargo bin not found at $cargoBin"

@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Secrets
+.env
+.env.local
+.env.*.local
+*.keystore
+**/keystore.properties
+!**/keystore.properties.example
+infra/android/keystore.credentials.local.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
