@@ -2,7 +2,7 @@
 # Sniplet Android APK build script (Linux/macOS).
 set -euo pipefail
 
-TARGET="${1:-universal}"
+TARGET="${1:-aarch64}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 

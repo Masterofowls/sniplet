@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## [0.1.1] - 2026-07-08
 
-- GitHub Actions CI and Release workflows
-- Cross-platform Android build scripts for CI
+### Fixed
+
+- Android APK install failure ("package is broken") via jniLibs symlink copy and arm64-only release builds
+
+### Changed
+
+- App logic moved from Rust to React (storage, clipboard, GitHub sync)
+- Rust backend reduced to Tauri plugins only
+- Releases built locally and uploaded with `npm run release -- vX.Y.Z`
+- GitHub Actions release workflow verifies only (no APK build in CI)
 
 ## [0.1.0] - 2026-07-08
 
@@ -24,5 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Biome lint/format and Vitest unit tests
 - Signed APK build and local keystore setup
 
-[Unreleased]: https://github.com/YOUR_USERNAME/sniplet/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/YOUR_USERNAME/sniplet/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/YOUR_USERNAME/sniplet/releases/tag/v0.1.1
 [0.1.0]: https://github.com/YOUR_USERNAME/sniplet/releases/tag/v0.1.0

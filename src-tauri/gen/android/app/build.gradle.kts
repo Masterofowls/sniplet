@@ -1,5 +1,22 @@
 import java.io.FileInputStream
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.Properties
+
+fun fixJniSymlinks(jniLibsDir: java.io.File) {
+    if (!jniLibsDir.exists()) return
+    jniLibsDir.walkTopDown().filter { it.isFile && it.extension == "so" }.forEach { soFile ->
+        val path = soFile.toPath()
+        if (Files.isSymbolicLink(path)) {
+            val target = Files.readSymbolicLink(path)
+            val resolved = if (target.isAbsolute) target else path.parent.resolve(target).normalize()
+            val temp = soFile.resolveSibling("${soFile.name}.tmp")
+            Files.copy(resolved, temp.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            Files.delete(path)
+            Files.move(temp.toPath(), path, StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+}
 
 plugins {
     id("com.android.application")
@@ -55,12 +72,7 @@ android {
             if (releaseSigning.storeFile?.exists() == true) {
                 signingConfig = releaseSigning
             }
-            isMinifyEnabled = true
-            proguardFiles(
-                *fileTree(".") { include("**/*.pro") }
-                    .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
-                    .toList().toTypedArray()
-            )
+            isMinifyEnabled = false
         }
     }
     kotlinOptions {
@@ -73,6 +85,18 @@ android {
 
 rust {
     rootDirRel = "../../../"
+}
+
+tasks.register("fixJniSymlinks") {
+    group = "rust"
+    description = "Replace jniLibs symlinks with real .so copies (fixes broken APK on Windows)"
+    doLast {
+        fixJniSymlinks(file("src/main/jniLibs"))
+    }
+}
+
+tasks.matching { it.name.startsWith("rustBuild") && it.name.endsWith("Release") }.configureEach {
+    finalizedBy("fixJniSymlinks")
 }
 
 dependencies {

@@ -11,3 +11,8 @@
 - Added `scripts/android-build.ps1` for rustup+NDK PATH fix on Windows
 - Fixed GitHub auth HTTP error on Android: moved OAuth/sync to `@tauri-apps/plugin-http` with native TLS roots; added `VITE_GITHUB_CLIENT_ID` to `.env`
 - Added GitHub Actions CI (`ci.yml`) and Release (`release.yml`) workflows, `docs/RELEASE.md`, `CHANGELOG.md`, and cross-platform build scripts
+- Fixed broken Android APK install: copy jniLibs symlinks before packaging, default arm64 build, disabled R8 minify, apksigner verify step
+- Moved snippet CRUD, import/export, merge, clipboard to React (`snippetStorage.ts`, `clipboard.ts`); Rust backend is plugins-only
+- Switched releases to local build + `gh release` upload (`scripts/release.ps1`); CI release workflow verifies only
+- Bumped version to `0.1.1` (`versionCode` 10001)
+- Fixed `release.ps1` SHA256 on shells without `Get-FileHash`; published `v0.1.1` to GitHub Releases

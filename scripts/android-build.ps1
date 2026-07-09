@@ -66,6 +66,35 @@ switch ($Target) {
     "split" { npm run tauri android build -- --apk --split-per-abi }
 }
 
+$apkCandidates = switch ($Target) {
+    "aarch64" {
+        @(
+            "src-tauri\gen\android\app\build\outputs\apk\arm64\release\app-arm64-release.apk",
+            "src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release.apk"
+        )
+    }
+    "universal" { @("src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release.apk") }
+    "split" { @() }
+}
+
+foreach ($candidate in $apkCandidates) {
+    if (-not (Test-Path $candidate)) { continue }
+    $buildTools = Get-ChildItem (Join-Path $sdkRoot "build-tools") -Directory -ErrorAction SilentlyContinue |
+        Sort-Object Name -Descending |
+        Select-Object -First 1
+    if ($buildTools) {
+        $apksigner = Join-Path $buildTools.FullName "apksigner.bat"
+        if (Test-Path $apksigner) {
+            Write-Host "Verifying APK: $candidate"
+            & $apksigner verify --verbose $candidate
+            if ($LASTEXITCODE -ne 0) {
+                throw "apksigner verify failed for $candidate"
+            }
+        }
+    }
+    break
+}
+
 Write-Host ""
 Write-Host "APK output directory:"
 Write-Host "  src-tauri\gen\android\app\build\outputs\apk\"

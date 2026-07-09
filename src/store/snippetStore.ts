@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { api } from "../lib/api";
+import * as clipboard from "../lib/clipboard";
 import * as github from "../lib/githubSync";
+import * as storage from "../lib/snippetStorage";
 import type { AuthStatus, Snippet, SnippetStore } from "../lib/types";
 
 interface SnippetState {
@@ -44,7 +45,7 @@ export const useSnippetStore = create<SnippetState>((set, get) => ({
   loadSnippets: async () => {
     set({ loading: true, error: null });
     try {
-      const store = await api.listSnippets();
+      const store = await storage.loadStore();
       applyStore(store, set);
     } catch (err) {
       set({ loading: false, error: String(err) });
@@ -56,7 +57,7 @@ export const useSnippetStore = create<SnippetState>((set, get) => ({
   toggleFavoritesOnly: () => set({ showFavoritesOnly: !get().showFavoritesOnly }),
 
   upsertSnippet: async (snippet) => {
-    const saved = await api.saveSnippet(snippet);
+    const saved = await storage.saveSnippet(snippet);
     set({
       snippets: get().snippets.some((s) => s.id === saved.id)
         ? get().snippets.map((s) => (s.id === saved.id ? saved : s))
@@ -65,35 +66,36 @@ export const useSnippetStore = create<SnippetState>((set, get) => ({
   },
 
   addSnippet: async (title, code, language, tags) => {
-    const saved = await api.createSnippet(title, code, language, tags);
+    const draft = storage.createSnippet(title, code, language, tags);
+    const saved = await storage.saveSnippet(draft);
     set({ snippets: [saved, ...get().snippets] });
     return saved;
   },
 
   deleteSnippet: async (id) => {
-    await api.removeSnippet(id);
+    await storage.removeSnippet(id);
     set({ snippets: get().snippets.filter((s) => s.id !== id) });
   },
 
   importFromClipboard: async () => {
-    const text = await api.readClipboard();
-    const imported = await api.importSnippets(text);
+    const text = await clipboard.readClipboard();
+    const imported = await storage.importSnippets(text);
     set({ snippets: [...imported, ...get().snippets] });
     return imported;
   },
 
   importFromText: async (text) => {
-    const imported = await api.importSnippets(text);
+    const imported = await storage.importSnippets(text);
     set({ snippets: [...imported, ...get().snippets] });
     return imported;
   },
 
   copySnippet: async (content) => {
-    await api.quickCopy(content);
+    await clipboard.writeClipboard(content);
   },
 
   duplicate: async (id) => {
-    const copy = await api.duplicateSnippet(id);
+    const copy = await storage.duplicateSnippet(id);
     set({ snippets: [copy, ...get().snippets] });
   },
 

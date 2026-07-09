@@ -4,18 +4,11 @@ on:
   push:
     tags:
       - "v*.*.*"
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version tag (e.g. v0.1.0)"
-        required: true
-        default: "v0.1.0"
 
 permissions:
-  contents: write
+  contents: read
 
 env:
-  JAVA_VERSION: "21"
   NODE_VERSION: "22"
 
 jobs:
@@ -29,123 +22,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
+      - uses: dtolnay/rust-toolchain@stable
       - run: npm ci
       - run: npm run verify
-
-  build-android:
-    name: Build signed Android APK
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Resolve version tag
-        id: version
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "tag=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install NDK
-        run: sdkmanager "ndk;27.2.12479018"
-
-      - name: Cache Cargo
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Prepare Android project and signing
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
-        run: bash scripts/ci-prepare-android.sh
-
-      - name: Build universal release APK
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
-          VITE_GITHUB_CLIENT_ID: ${{ secrets.VITE_GITHUB_CLIENT_ID }}
-        run: bash scripts/android-build.sh universal
-
-      - name: Collect release artifacts
-        run: |
-          VERSION="${{ steps.version.outputs.tag }}"
-          VERSION="${VERSION#v}"
-          APK_SRC="src-tauri/gen/android/app/build/outputs/apk/universal/release"
-          mkdir -p dist/release
-          if [[ -f "$APK_SRC/app-universal-release.apk" ]]; then
-            cp "$APK_SRC/app-universal-release.apk" "dist/release/sniplet-${VERSION}-universal.apk"
-          elif [[ -f "$APK_SRC/app-universal-release-unsigned.apk" ]]; then
-            cp "$APK_SRC/app-universal-release-unsigned.apk" "dist/release/sniplet-${VERSION}-universal-unsigned.apk"
-          else
-            echo "APK not found in $APK_SRC" >&2
-            ls -la "$APK_SRC" || true
-            exit 1
-          fi
-          cd dist/release
-          sha256sum ./* > SHA256SUMS.txt
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sniplet-android-${{ steps.version.outputs.tag }}
-          path: dist/release/
-          retention-days: 30
-
-  publish-github-release:
-    name: Publish GitHub Release
-    needs: build-android
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Resolve version tag
-        id: version
-        run: echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: sniplet-android-${{ steps.version.outputs.tag }}
-          path: dist/release
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: Sniplet ${{ steps.version.outputs.tag }}
-          generate_release_notes: true
-          files: |
-            dist/release/*
-          draft: false
-          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+      - run: cargo check --manifest-path src-tauri/Cargo.toml

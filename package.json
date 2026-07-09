@@ -1,7 +1,7 @@
 {
   "name": "sniplet",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -20,8 +20,10 @@
     "android:build": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target aarch64",
     "android:build:universal": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target universal",
     "android:build:split": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target split",
-    "android:build:ci": "bash scripts/android-build.sh universal",
-    "android:prepare": "bash scripts/ci-prepare-android.sh"
+    "android:build:ci": "bash scripts/android-build.sh aarch64",
+    "android:prepare": "bash scripts/ci-prepare-android.sh",
+    "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1",
+    "release:linux": "bash scripts/release.sh"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -29,6 +31,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
     "@tauri-apps/plugin-http": "^2.5.9",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-store": "^2.4.3",

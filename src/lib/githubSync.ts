@@ -1,6 +1,6 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { LazyStore } from "@tauri-apps/plugin-store";
-import { api } from "./api";
+import * as storage from "./snippetStorage";
 import type { AuthStatus, DeviceFlowStart, SnippetStore } from "./types";
 
 const GIST_FILENAME = "sniplet-snippets.json";
@@ -161,7 +161,7 @@ async function ensureGist(token: string): Promise<string> {
   const existing = await syncStore.get<string>("gist_id");
   if (existing) return existing;
 
-  const store = await api.listSnippets();
+  const store = await storage.loadStore();
   const response = await githubJsonRequest("https://api.github.com/gists", token, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -191,7 +191,7 @@ export async function pushSync(): Promise<AuthStatus> {
   if (!token) throw new Error("Not authenticated with GitHub");
 
   const gistId = await ensureGist(token);
-  const store = await api.listSnippets();
+  const store = await storage.loadStore();
 
   const response = await githubJsonRequest(`https://api.github.com/gists/${gistId}`, token, {
     method: "PATCH",
@@ -234,10 +234,10 @@ export async function pullSync(): Promise<SnippetStore> {
   }
 
   const remote = JSON.parse(content) as SnippetStore;
-  await api.mergeRemoteStore(remote);
+  const merged = await storage.mergeRemoteStore(remote);
 
   const now = new Date().toISOString();
   await syncStore.set("last_sync_at", now);
   await syncStore.save();
-  return remote;
+  return merged;
 }
