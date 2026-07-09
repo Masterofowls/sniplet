@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.DS_Store
+src-tauri/target
+src-tauri/gen
+infra/android/*.keystore
+src-tauri/gen/android/keystore.properties

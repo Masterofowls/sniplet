@@ -18,3 +18,4 @@
 - Fixed `release.ps1` SHA256 on shells without `Get-FileHash`; published `v0.1.1` to GitHub Releases
 - Replaced GitHub OAuth with manual PAT auth in GitHub Sync panel
 - Published `v0.1.2` release; removed `v0.1.0` and `v0.1.1` releases
+- Added reusable `template/tauri-react-mobile` scaffold + `scripts/create-app.ps1`

@@ -1,7 +1,7 @@
-{
-  "name": "sniplet",
+﻿{
+  "name": "demo-app",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,13 +16,13 @@
     "typecheck": "tsc --noEmit",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build",
     "android:init": "tauri android init",
+    "android:patch": "powershell -ExecutionPolicy Bypass -File scripts/patch-android.ps1",
+    "android:patch:unix": "bash scripts/patch-android.sh",
     "android:dev": "tauri android dev",
     "android:build": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target aarch64",
     "android:build:universal": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target universal",
     "android:build:split": "powershell -ExecutionPolicy Bypass -File scripts/android-build.ps1 -Target split",
     "android:build:ci": "bash scripts/android-build.sh aarch64",
-    "create-app": "powershell -ExecutionPolicy Bypass -File scripts/create-app.ps1",
-    "android:prepare": "bash scripts/ci-prepare-android.sh",
     "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1",
     "release:linux": "bash scripts/release.sh"
   },
@@ -32,15 +32,13 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-clipboard-manager": "^2.3.2",
+    "@tauri-apps/plugin-clipboard-manager": "^2",
     "@tauri-apps/plugin-http": "^2.5.9",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-store": "^2.4.3",
     "framer-motion": "^12.12.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-syntax-highlighter": "^15.6.1",
-    "uuid": "^11.1.0",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -50,8 +48,6 @@
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "@types/react-syntax-highlighter": "^15.5.13",
-    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/coverage-v8": "^3.2.4",
     "jsdom": "^26.1.0",

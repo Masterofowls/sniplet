@@ -135,6 +135,16 @@ npm run release -- v0.1.2
 
 See **[docs/RELEASE.md](docs/RELEASE.md)** for signing and keystore setup.
 
+## App template
+
+Scaffold a new Tauri + React mobile app (minimal Rust, reusable components, APK scripts):
+
+```powershell
+npm run create-app -- -Name "My App" -AppId "com.example.myapp" -Output "..\my-app"
+```
+
+See **[template/README.md](template/README.md)**.
+
 ## License
 
 MIT
