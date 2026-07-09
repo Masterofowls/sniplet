@@ -36,3 +36,6 @@ src-tauri/gen/android/**/build/
 src-tauri/gen/android/.gradle/
 /.vscode
 /.cursor
+/.cursor/hooks
+/.cursor/hooks/state
+/.cursor/hooks/state/continual-learning.json

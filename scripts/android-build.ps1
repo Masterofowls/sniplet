@@ -23,10 +23,6 @@ if (Test-Path $envFile) {
     Write-Host "Loaded environment from .env"
 }
 
-if (-not $env:GITHUB_CLIENT_ID) {
-    Write-Warning "GITHUB_CLIENT_ID is not set. GitHub sync will fail until you add it to .env"
-}
-
 $cargoBin = Join-Path $env:USERPROFILE ".cargo\bin"
 if (-not (Test-Path $cargoBin)) {
     throw "rustup cargo bin not found at $cargoBin"

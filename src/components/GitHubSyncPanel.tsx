@@ -8,18 +8,21 @@ import {
   Box,
   Button,
   Chip,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  Link,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import * as github from "../lib/githubSync";
 import type { AuthStatus } from "../lib/types";
 import { useSnippetStore } from "../store/snippetStore";
+
+const PAT_DOCS_URL = "https://github.com/settings/tokens/new?scopes=gist&description=Sniplet";
 
 interface GitHubSyncPanelProps {
   open: boolean;
@@ -35,52 +38,29 @@ export function GitHubSyncPanel({ open, onClose }: GitHubSyncPanelProps) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userCode, setUserCode] = useState<string | null>(null);
-  const [verificationUri, setVerificationUri] = useState<string | null>(null);
-  const [polling, setPolling] = useState(false);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     if (open) {
       refreshAuth();
+      setError(null);
+      setToken("");
     }
   }, [open, refreshAuth]);
 
-  const startOAuth = useCallback(async () => {
+  const handleConnect = async () => {
     setLoading(true);
     setError(null);
     try {
-      const flow = await github.startDeviceFlow();
-      setUserCode(flow.user_code);
-      setVerificationUri(flow.verification_uri);
-      setPolling(true);
-
-      const poll = async () => {
-        try {
-          const status = await github.pollDeviceFlow();
-          setPolling(false);
-          useSnippetStore.setState({ auth: status });
-          setUserCode(null);
-        } catch (err) {
-          const message = String(err);
-          if (message.includes("authorization_pending") || message.includes("slow_down")) {
-            const delay = message.includes("slow_down")
-              ? flow.interval * 2000
-              : flow.interval * 1000;
-            setTimeout(poll, delay);
-            return;
-          }
-          setPolling(false);
-          setError(message);
-        }
-      };
-
-      setTimeout(poll, flow.interval * 1000);
+      const status = await github.connectWithToken(token);
+      useSnippetStore.setState({ auth: status });
+      setToken("");
     } catch (err) {
       setError(String(err));
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const handlePush = async () => {
     setLoading(true);
@@ -108,8 +88,7 @@ export function GitHubSyncPanel({ open, onClose }: GitHubSyncPanelProps) {
 
   const handleLogout = async () => {
     await logout();
-    setUserCode(null);
-    setVerificationUri(null);
+    setToken("");
   };
 
   return (
@@ -129,31 +108,41 @@ export function GitHubSyncPanel({ open, onClose }: GitHubSyncPanelProps) {
           ) : (
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Connect with GitHub OAuth device flow. Snippets sync to a private Gist.
+                Paste a GitHub personal access token with the <strong>gist</strong> scope. Snippets
+                sync to a private Gist stored on your device.
               </Typography>
-              {userCode ? (
-                <Alert severity="info">
-                  Enter code <strong>{userCode}</strong> at{" "}
-                  <Typography component="span" variant="body2">
-                    {verificationUri}
-                  </Typography>
-                  {polling && (
-                    <Stack direction="row" spacing={1} sx={{ alignItems: "center", mt: 1 }}>
-                      <CircularProgress size={16} />
-                      <Typography variant="caption">Waiting for authorization...</Typography>
-                    </Stack>
-                  )}
-                </Alert>
-              ) : (
+              <Stack spacing={2}>
+                <TextField
+                  label="Personal access token"
+                  type="password"
+                  value={token}
+                  onChange={(event) => setToken(event.target.value)}
+                  placeholder="ghp_..."
+                  fullWidth
+                  autoComplete="off"
+                  disabled={loading}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && token.trim()) {
+                      void handleConnect();
+                    }
+                  }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  Create a token at{" "}
+                  <Link href={PAT_DOCS_URL} target="_blank" rel="noopener noreferrer">
+                    github.com/settings/tokens
+                  </Link>{" "}
+                  (classic token with <strong>gist</strong> scope).
+                </Typography>
                 <Button
                   variant="contained"
                   startIcon={<GitHubIcon />}
-                  onClick={startOAuth}
-                  disabled={loading}
+                  onClick={handleConnect}
+                  disabled={loading || !token.trim()}
                 >
-                  Connect GitHub
+                  Connect
                 </Button>
-              )}
+              </Stack>
             </Box>
           )}
         </Stack>

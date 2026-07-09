@@ -8,7 +8,7 @@ Advanced code snippet manager for Android (and desktop) built with **Tauri v2**,
 - Quick copy to clipboard (one tap)
 - Quick import from clipboard or pasted text (with language detection)
 - Search, tags, and favorites filtering
-- GitHub OAuth device flow + private Gist sync (push/pull)
+- GitHub personal access token + private Gist sync (push/pull)
 - Offline-first local JSON storage
 
 ## Stack note
@@ -27,20 +27,16 @@ Tauri Android uses a **WebView + React web** frontend. React Native Paper and Re
 
 ```bash
 npm install
-cp .env.example .env
-# Set GITHUB_CLIENT_ID from https://github.com/settings/developers (OAuth App, enable device flow)
 npm run android:init   # if not already initialized
 ```
 
-### GitHub OAuth App
+### GitHub sync
 
-1. Create an OAuth App at https://github.com/settings/developers
-2. Enable **Device Flow**
-3. Set `GITHUB_CLIENT_ID` in `.env` or export before build:
+1. In the app, open **GitHub Sync**
+2. Create a [classic personal access token](https://github.com/settings/tokens/new?scopes=gist&description=Sniplet) with the **gist** scope
+3. Paste the token and tap **Connect**
 
-```powershell
-$env:GITHUB_CLIENT_ID = "your_client_id"
-```
+No OAuth app or build-time GitHub credentials are required.
 
 ## Development
 
@@ -79,7 +75,6 @@ src-tauri/gen/android/app/build/outputs/apk/aarch64/release/app-aarch64-release.
 | JVM heap | 4096m | `src-tauri/gen/android/gradle.properties` |
 | AndroidX | enabled | `gradle.properties` |
 | Target arch (CI/local) | `aarch64` | `package.json` android:build script |
-| GitHub client ID | build-time env | `VITE_GITHUB_CLIENT_ID` in `.env` / Actions secret |
 
 ### Signed release APK (local)
 
@@ -116,7 +111,7 @@ GitHub Actions run on every push/PR to `main`:
 | Workflow | File | Purpose |
 |----------|------|---------|
 | **CI** | `.github/workflows/ci.yml` | Lint, typecheck, tests, Vite build, `cargo check` |
-| **Release** | `.github/workflows/release.yml` | Signed universal APK + GitHub Release on tag `v*.*.*` |
+| **Release** | `.github/workflows/release.yml` | Verify on tag `v*.*.*` (APK built locally) |
 
 Badge (replace `YOUR_USERNAME/sniplet`):
 
@@ -132,44 +127,13 @@ Full release documentation: **[docs/RELEASE.md](docs/RELEASE.md)**
 ### Quick release
 
 1. Update [CHANGELOG.md](CHANGELOG.md) and version in `src-tauri/tauri.conf.json`
-2. Configure GitHub Actions secrets (see below)
-3. Tag and push:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-4. Download the signed APK from the GitHub Release page
-
-### Required GitHub Actions secrets
-
-| Secret | Purpose |
-|--------|---------|
-| `VITE_GITHUB_CLIENT_ID` | GitHub OAuth Client ID for in-app sync |
-| `ANDROID_KEYSTORE_BASE64` | Base64 release keystore |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | Key alias (default: `sniplet`) |
-
-### Local signed build
+2. Tag, build, and publish locally:
 
 ```powershell
-# Windows
-npm run android:build:universal
+npm run release -- v0.1.2
 ```
 
-```bash
-# Linux/macOS (CI-compatible)
-npm run android:build:ci
-```
-
-Signed APK output:
-
-```
-src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
-```
-
-See [docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md) and [infra/android/SIGNING.md](infra/android/SIGNING.md) for signing details.
+See **[docs/RELEASE.md](docs/RELEASE.md)** for signing and keystore setup.
 
 ## License
 

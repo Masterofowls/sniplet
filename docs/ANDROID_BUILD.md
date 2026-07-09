@@ -44,13 +44,6 @@ npm run tauri android init
 - aarch64: `src-tauri/gen/android/app/build/outputs/apk/aarch64/release/`
 - universal: `src-tauri/gen/android/app/build/outputs/apk/universal/release/`
 
-## GitHub OAuth for sync
+## GitHub sync
 
-Set `GITHUB_CLIENT_ID` before building:
-
-```powershell
-$env:GITHUB_CLIENT_ID = "your_oauth_app_client_id"
-npm run android:build
-```
-
-Register OAuth app with **Device Flow** enabled at https://github.com/settings/developers
+No build-time GitHub credentials are required. Users paste a personal access token in the app (**GitHub Sync** panel). Create a classic token with the **gist** scope at https://github.com/settings/tokens

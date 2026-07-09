@@ -1,7 +1,7 @@
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import { LazyStore } from "@tauri-apps/plugin-store";
 import * as storage from "./snippetStorage";
-import type { AuthStatus, DeviceFlowStart, SnippetStore } from "./types";
+import type { AuthStatus, SnippetStore } from "./types";
 
 const GIST_FILENAME = "sniplet-snippets.json";
 const USER_AGENT = "Sniplet/0.1.0";
@@ -9,37 +9,12 @@ const SYNC_STORE = "sync.json";
 
 const syncStore = new LazyStore(SYNC_STORE);
 
-let pendingDeviceCode: string | null = null;
-
-function clientId(): string {
-  const id = import.meta.env.VITE_GITHUB_CLIENT_ID?.trim();
-  if (!id) {
-    throw new Error(
-      "GitHub Client ID missing. Set VITE_GITHUB_CLIENT_ID in .env and rebuild the app.",
-    );
-  }
-  return id;
-}
-
 async function httpFetch(input: string, init?: RequestInit): Promise<Response> {
   const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
   if (isTauri) {
     return tauriFetch(input, init);
   }
   return globalThis.fetch(input, init);
-}
-
-async function githubFormPost(url: string, fields: Record<string, string>): Promise<Response> {
-  const body = new URLSearchParams(fields);
-  return httpFetch(url, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "User-Agent": USER_AGENT,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: body.toString(),
-  });
 }
 
 async function githubJsonRequest(
@@ -91,60 +66,21 @@ export async function getAuthStatus(): Promise<AuthStatus> {
   };
 }
 
-export async function startDeviceFlow(): Promise<DeviceFlowStart> {
-  const response = await githubFormPost("https://github.com/login/device/code", {
-    client_id: clientId(),
-    scope: "gist user:email",
-  });
-
-  if (!response.ok) {
-    throw new Error(await readError(response, "Failed to start GitHub device flow"));
+export async function connectWithToken(token: string): Promise<AuthStatus> {
+  const trimmed = token.trim();
+  if (!trimmed) {
+    throw new Error("Enter a GitHub personal access token");
   }
 
-  const body = (await response.json()) as DeviceFlowStart;
-  pendingDeviceCode = body.device_code;
-  return body;
-}
-
-export async function pollDeviceFlow(): Promise<AuthStatus> {
-  if (!pendingDeviceCode) {
-    throw new Error("Device flow not started");
-  }
-
-  const response = await githubFormPost("https://github.com/login/oauth/access_token", {
-    client_id: clientId(),
-    device_code: pendingDeviceCode,
-    grant_type: "urn:ietf:params:oauth:grant-type:device_code",
-  });
-
-  const body = (await response.json()) as {
-    access_token?: string;
-    error?: string;
-  };
-
-  if (body.error === "authorization_pending" || body.error === "slow_down") {
-    throw new Error("authorization_pending");
-  }
-
-  if (body.error) {
-    throw new Error(body.error);
-  }
-
-  if (!body.access_token) {
-    throw new Error("Missing GitHub access token");
-  }
-
-  const userResponse = await githubJsonRequest("https://api.github.com/user", body.access_token);
+  const userResponse = await githubJsonRequest("https://api.github.com/user", trimmed);
   if (!userResponse.ok) {
-    throw new Error(await readError(userResponse, "Failed to fetch GitHub user"));
+    throw new Error(await readError(userResponse, "Invalid GitHub token"));
   }
 
   const user = (await userResponse.json()) as { login: string };
-  await syncStore.set("github_token", body.access_token);
+  await syncStore.set("github_token", trimmed);
   await syncStore.set("github_username", user.login);
   await syncStore.save();
-
-  pendingDeviceCode = null;
   return getAuthStatus();
 }
 
@@ -154,7 +90,6 @@ export async function logout(): Promise<void> {
   await syncStore.delete("github_username");
   await syncStore.delete("last_sync_at");
   await syncStore.save();
-  pendingDeviceCode = null;
 }
 
 async function ensureGist(token: string): Promise<string> {

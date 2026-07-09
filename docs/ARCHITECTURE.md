@@ -5,27 +5,28 @@
 Sniplet is a Tauri v2 hybrid app:
 
 - **Frontend**: React 19 + TypeScript + Vite + MUI + Framer Motion
-- **Backend**: Rust (snippet storage, clipboard, GitHub OAuth/sync)
+- **Backend**: Rust (Tauri plugins only: HTTP, store, clipboard)
 - **Mobile**: Android WebView via Tauri mobile
 
 ## Data flow
 
 ```mermaid
 flowchart LR
-  UI[React UI] -->|invoke| Rust[Rust commands]
-  Rust --> Local[(snippets.json)]
-  Rust --> Store[(sync.json tokens)]
-  Rust --> GitHub[GitHub Gist API]
+  UI[React UI] --> Store[(plugin-store)]
+  UI --> GitHub[GitHub Gist API]
+  Store --> Snippets[snippets.json]
+  Store --> Sync[sync.json tokens]
 ```
 
 ## Sync model
 
-- OAuth via GitHub **device flow** (mobile-friendly, no redirect URI)
+- User pastes a GitHub **personal access token** (classic, `gist` scope) in the app
+- Token stored locally via `tauri-plugin-store`
 - Snippets stored in a private Gist file `sniplet-snippets.json`
-- Push overwrites remote; pull replaces local store
+- Push overwrites remote; pull merges into local store
 
 ## Security
 
 - Tokens stored via `tauri-plugin-store` in app data directory
-- HTTP scoped to `github.com` and `api.github.com`
-- Filesystem scoped to app data paths
+- HTTP scoped to `api.github.com`
+- No OAuth client secrets or build-time GitHub credentials

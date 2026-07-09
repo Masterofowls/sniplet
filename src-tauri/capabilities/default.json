@@ -19,7 +19,7 @@
     "http:default",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://github.com/**" }, { "url": "https://api.github.com/**" }]
+      "allow": [{ "url": "https://api.github.com/**" }]
     }
   ]
 }

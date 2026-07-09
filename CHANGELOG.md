@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced GitHub OAuth device flow with manual personal access token auth
+
 ## [0.1.1] - 2026-07-08
 
 ### Fixed

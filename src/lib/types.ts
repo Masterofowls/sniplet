@@ -22,14 +22,6 @@ export interface AuthStatus {
   last_sync_at?: string | null;
 }
 
-export interface DeviceFlowStart {
-  device_code: string;
-  user_code: string;
-  verification_uri: string;
-  expires_in: number;
-  interval: number;
-}
-
 export interface SnippetDraft {
   title: string;
   code: string;

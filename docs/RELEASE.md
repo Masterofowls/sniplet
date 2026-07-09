@@ -18,7 +18,6 @@ Sniplet releases are built **locally** and uploaded to GitHub Releases with a se
 - Signing keystore at `infra/android/sniplet-release.keystore`
 - `src-tauri/gen/android/keystore.properties` configured
 - [GitHub CLI](https://cli.github.com/) (`gh`) authenticated
-- `.env` with `VITE_GITHUB_CLIENT_ID`
 
 ### One-command release (Windows)
 
@@ -91,7 +90,7 @@ Example bump for `0.2.0`:
 - [ ] Version bumped in `tauri.conf.json` / `package.json`
 - [ ] `npm run release -- -Tag vX.Y.Z` succeeds
 - [ ] APK installs on a physical arm64 device
-- [ ] GitHub OAuth connect + Gist push/pull tested on device
+- [ ] GitHub PAT connect + Gist push/pull tested on device
 
 ## Troubleshooting
 
@@ -99,7 +98,7 @@ Example bump for `0.2.0`:
 |-------|-----|
 | "Package is broken" on install | Use arm64 APK from local build; uninstall old app first; ensure keystore signing is configured |
 | Unsigned APK | Add `keystore.properties` and rebuild |
-| GitHub auth broken in APK | Set `VITE_GITHUB_CLIENT_ID` in `.env` before build |
+| GitHub sync fails | Create a classic PAT with **gist** scope; paste it in GitHub Sync |
 | `apksigner verify` fails | Rebuild with `npm run android:build`; check keystore paths |
 | Windows symlink / corrupt APK | Gradle `fixJniSymlinks` task copies real `.so` files before packaging |
 
