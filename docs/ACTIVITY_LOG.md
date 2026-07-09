@@ -17,3 +17,4 @@
 - Bumped version to `0.1.1` (`versionCode` 10001)
 - Fixed `release.ps1` SHA256 on shells without `Get-FileHash`; published `v0.1.1` to GitHub Releases
 - Replaced GitHub OAuth with manual PAT auth in GitHub Sync panel
+- Published `v0.1.2` release; removed `v0.1.0` and `v0.1.1` releases

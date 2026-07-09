@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-09
+
 ### Changed
 
-- Replaced GitHub OAuth device flow with manual personal access token auth
+- GitHub sync uses manual personal access token instead of OAuth device flow
 
 ## [0.1.1] - 2026-07-08
 
@@ -37,5 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Signed APK build and local keystore setup
 
 [Unreleased]: https://github.com/YOUR_USERNAME/sniplet/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/YOUR_USERNAME/sniplet/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/YOUR_USERNAME/sniplet/releases/tag/v0.1.2
 [0.1.1]: https://github.com/YOUR_USERNAME/sniplet/releases/tag/v0.1.1
 [0.1.0]: https://github.com/YOUR_USERNAME/sniplet/releases/tag/v0.1.0

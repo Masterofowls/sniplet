@@ -60,7 +60,28 @@ if (-not $SkipBuild) {
     New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
     Copy-Item $apkPath $releaseApk -Force
 } elseif (-not (Test-Path $releaseApk)) {
-    throw "SkipBuild set but release APK not found at $releaseApk"
+    $apkCandidates = @(
+        "src-tauri\gen\android\app\build\outputs\apk\arm64\release\app-arm64-release.apk",
+        "src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release.apk",
+        "src-tauri\gen\android\app\build\outputs\apk\arm64\release\app-arm64-release-unsigned.apk",
+        "src-tauri\gen\android\app\build\outputs\apk\universal\release\app-universal-release-unsigned.apk"
+    )
+
+    $apkPath = $null
+    foreach ($candidate in $apkCandidates) {
+        if (Test-Path $candidate) {
+            $apkPath = $candidate
+            break
+        }
+    }
+
+    if (-not $apkPath) {
+        throw "SkipBuild set but no APK found in build output or at $releaseApk"
+    }
+
+    New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+    Copy-Item $apkPath $releaseApk -Force
+    Write-Host "Copied build APK: $apkPath -> $releaseApk"
 }
 
 $sdkRoot = $env:ANDROID_HOME

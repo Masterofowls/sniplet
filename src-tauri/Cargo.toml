@@ -1,6 +1,6 @@
 [package]
 name = "sniplet"
-version = "0.1.1"
+version = "0.1.2"
 description = "Advanced code snippet manager with GitHub sync"
 authors = ["Sniplet"]
 edition = "2021"
