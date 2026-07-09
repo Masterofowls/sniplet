@@ -39,3 +39,4 @@ src-tauri/gen/android/.gradle/
 /.cursor/hooks
 /.cursor/hooks/state
 /.cursor/hooks/state/continual-learning.json
+/.tmp-demo-app/node_modules
